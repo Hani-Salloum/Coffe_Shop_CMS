@@ -8,7 +8,7 @@ import { updateItemById } from "@/requests/item";
 import { Item } from "@/types/item";
 import { LoaderIcon, Plus, Trash } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,21 +19,20 @@ import { Category } from "@/types/category";
 import { Label } from "@/components/ui/label";
 import ImageInput from "@/components/reusable/image-input";
 import { HSelect } from "@/components/reusable/select";
+import { Size } from "@/types/size";
+import { Ingredient } from "@/types/ingredient";
 
 interface EditItemProps {
   data: Item;
   categories: Array<Category>
+  sizes: Array<Size>
+  ingredients: Array<Ingredient>
   items: Array<Item>
 }
-
-const ingredientSchema = z.string()
-const sizeSchema = z.string()
 
 const schema = z.object({
     id: z.number(),
     name: z.string().min(2, "Name must be at least 2 characters"),
-    ingredients: z.array(ingredientSchema).min(0, "At least 2 ingredients are required"),
-    sizes: z.array(sizeSchema).nullable(),
     price: z.any(),
     image:  z.instanceof(File, { message: "Image is required" }),
     description: z.string().min(40, "Dscription must be at least 40 characters"),
@@ -44,11 +43,13 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 
-export default function EditItemView({ data, categories, items }: EditItemProps) {
+export default function EditItemView({ data, categories, items, ingredients, sizes }: EditItemProps) {
     const { t } = useLanguage()
     const router = useRouter()
-    const [ itemIds, setItemIds ] = useState('')
-    const [ categoryIds, setCategoriesIds ] = useState('')
+    const [ itemIds, setItemIds ] = useState(data.related_items?.map(item => item.id))
+    const [ categoryIds, setCategoriesIds ] = useState(data.categories.map(item => item.id))
+    const [ sizesIds, setSizesIds ] = useState(data.sizes.map(item => item.id) ?? [])
+    const [ ingredientsIds, setIngredientsIds ] = useState(data.ingredients.map(item => item.id))
 
     const {
         register,
@@ -62,18 +63,15 @@ export default function EditItemView({ data, categories, items }: EditItemProps)
         defaultValues: data
       });
 
-      const { fields: ingredientFields, append: appendIngredient, remove: removeIngredient } = useFieldArray({
-        control: control,
-        name: 'ingredients'
-      })
-      
-      const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
-        control: control,
-        name: 'sizes'
-      })
     
       const onSubmit = async (data: FormData) => {
-        const payload = { ...data, related_items: [Number(itemIds)], categories: [Number(categoryIds)] }
+        const payload = {
+          ...data,
+          related_items: itemIds,
+          categories: categoryIds,
+          sizes: sizesIds,
+          ingredients: ingredientsIds,
+        };
         try {
             await updateItemById(data.id.toString(), {...data} as Item)
             toast.success(t('item.updated'))
@@ -112,14 +110,38 @@ export default function EditItemView({ data, categories, items }: EditItemProps)
             <HSelect
               options={categories}
               value={categoryIds}
+              multiple
               onChange={setCategoriesIds}
               valueProperty="id"
               labelProperty="name"
               label={t("category")}
               placeholder={t("selectCategory")}
-              multiple
             />
                 </Col>
+                <Col span={6} sm={6}>
+            <HSelect
+              options={sizes}
+              value={sizesIds}
+              onChange={setSizesIds}
+              valueProperty="id"
+              labelProperty="name"
+              label={t("size")}
+              placeholder={t("selectSize")}
+              multiple
+            />
+          </Col>
+          <Col span={6} sm={6}>
+            <HSelect
+              options={ingredients}
+              value={ingredientsIds}
+              onChange={setIngredientsIds}
+              valueProperty="id"
+              labelProperty="name"
+              label={t("ingredients")}
+              placeholder={t("selectIngredient")}
+              multiple
+            />
+          </Col>
             <Col span={6} sm={6}>
             <HSelect
               options={items}
@@ -149,77 +171,6 @@ export default function EditItemView({ data, categories, items }: EditItemProps)
             watch={watch}
             error={errors.image ? errors.image.message : ''}
         />
-    </Col>
-    
-    <Col span={12}>
-    <h3 className="text-primary text-3xl mt-8 mb-3">{ t('ingredients') }</h3>
-    <Row>
-    { ingredientFields.map((ingredient, index) => (
-            <Col span={4} sm={4} key={index} className="flex items-end justify-between gap-1">
-              <HInput
-                    label={t("ingredient") + ` #${index + 1}`}
-                    {...register(`ingredients.${index}`)}
-                    error={errors.ingredients?.[index] ? errors.ingredients[index]?.message ?? 'Fill this field' : ''}
-                />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeIngredient(index)}
-              >
-                <Trash className="size-5 text-red-500" />
-              </Button>
-            </Col>
-        )) }
-            <Col span={4} sm={4} className="flex items-end">
-              <Button
-                // variant="ghost"
-                type="button"
-                size="icon"
-                onClick={() => {appendIngredient('')}}
-                className="flex px-3 py-2 justify-between bg-secondary text-primary hover:bg-secondary/60 items-center w-[150px]"
-                // onClick={() => console.log((trader?.id))}
-              >
-                { t('addIngredient') }
-                <Plus className="size-5 fill-secondary" />
-              </Button>
-            
-            </Col>
-    </Row>
-    </Col>
-    <Col span={12}>
-    <h3 className="text-primary text-3xl mt-8 mb-3">{ t('sizes') }</h3>
-    <Row>
-    { sizeFields.map((size, index) => (
-            <Col span={4} sm={4} key={index} className="flex items-end justify-between gap-1">
-              <HInput
-                    label={t("size") + ` #${index + 1}`}
-                    {...register(`sizes.${index}`)}
-                    error={errors.sizes?.[index] ? errors.sizes[index]?.message ?? 'Fill this field' : ''}
-                />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeSize(index)}
-              >
-                <Trash className="size-5 text-red-500" />
-              </Button>
-            </Col>
-        )) }
-            <Col span={4} sm={4} className="flex items-end">
-              <Button
-                // variant="ghost"
-                type="button"
-                size="icon"
-                onClick={() => {appendSize('')}}
-                className="flex px-3 py-2 justify-between bg-secondary text-primary hover:bg-secondary/60 items-center w-[150px]"
-                // onClick={() => console.log((trader?.id))}
-              >
-                { t('addSize') }
-                <Plus className="size-5" />
-              </Button>
-            
-            </Col>
-    </Row>
     </Col>
     <Col span={12}>
       <Label className="text-primary mt-4 mb-3">{ t('description') }</Label>

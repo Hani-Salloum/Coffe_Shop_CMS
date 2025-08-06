@@ -142,6 +142,8 @@ export const translations = {
       'image': 'Image',
       'img': 'Image',
       'selectCategory': 'Select a category',
+      'selectSize': 'Select a size',
+      'selectIngredient': 'Select ingredients',
       'rate': 'Rating',
 
 
@@ -294,6 +296,8 @@ export const translations = {
       'image': 'الصورة',
       'img': 'الصورة',
       'selectCategory': 'اختر فئة',
+      'selectSize': 'اختر حجم',
+      'selectIngredient': 'اختر المكونات',
       'rate': 'التقييم',
 
 
