@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import {  BarChart3, Users, FileText, Settings, ChevronRight, ChevronLeft, Check, UsersIcon, ShieldUser, BadgeDollarSign, BadgeHelp, Building2, LayoutPanelLeft, Receipt, Reply, CircleArrowOutUpLeft, Coffee, Tractor, User, Images, MessageCircleQuestion, Mails, BadgeInfo, Phone } from 'lucide-react'
+import {  BarChart3, Users, FileText, Settings, ChevronRight, ChevronLeft, Check, UsersIcon, ShieldUser, BadgeDollarSign, BadgeHelp, Building2, LayoutPanelLeft, Receipt, Reply, CircleArrowOutUpLeft, Coffee, Tractor, User, Images, MessageCircleQuestion, Mails, BadgeInfo, Phone, ArrowUpNarrowWide, ShoppingCart } from 'lucide-react'
 import { Header } from './header'
 import { useLanguage, useSidebar } from '@/providers'
 import { useEffect, useState } from 'react'
@@ -63,6 +63,8 @@ export function AppSidebar({ children } : Readonly<{ children: React.ReactNode }
             <nav className="space-y-1 px-2">
               <SidebarItem icon={<Coffee />} label={t("sidebar.items")} href="/dashboard/item-management" />
               <SidebarItem icon={<LayoutPanelLeft />} label={t("sidebar.categories")} href="/dashboard/category-management" />
+              <SidebarItem icon={<ArrowUpNarrowWide />} label={t("sidebar.sizes")} href="/dashboard/size-management" />
+              <SidebarItem icon={<ShoppingCart />} label={t("sidebar.ingredients")} href="/dashboard/ingredient-management" />
               <SidebarItem icon={<Tractor />} label={t("sidebar.farms")} href="/dashboard/farm-management" />
               <SidebarItem icon={<User />} label={t("sidebar.baristas")} href="/dashboard/barista-management" />
               <SidebarItem icon={<Images />} label={t("sidebar.gallery")} href="/dashboard/gallery-management" />
